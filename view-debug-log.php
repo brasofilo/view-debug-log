@@ -4,7 +4,7 @@
  * Plugin Name: View Debug Log
  * Plugin URI: http://brasofilo.com/manage-debug-log
  * Description: Adds a settings page to view and clear the Debug Log (/wp-content/debug.log)
- * Version: 2013.09.13.6
+ * Version: 2013.09.13.7
  * Author: Rodolfo Buaiz
  * Network: true
  * Author URI: http://wordpress.stackexchange.com/users/12615/brasofilo
@@ -44,26 +44,31 @@ class B5F_Manage_Debug_Log
 
 	public function plugin_setup()
 	{
-		$this->no_log_img = 'http://f.cl.ly/items/1r1J1j2t2E291h0E0i0n/nothing-here.jpg';
+		# CLASS PROPERTIES
+		$this->no_log_img = plugins_url( '/images/empty.png', __FILE__ );
 		$this->logpath = WP_CONTENT_DIR . '/' . $this->logfile;
 		$options = get_option( self::$option_name );
 		if( !$options )
 			$options = array( 'max_size' => '10' );
 		$this->options = $options;
 		
+		# MENU
 		$hook = is_multisite() ? 'network_' : '';
-		
 		add_action( "{$hook}admin_menu", array( $this, 'make_menu' ) );
 		
-		add_action( 'vdl_daily_event', array( $this, 'do_this_daily' ) );
-		add_filter( "{$hook}plugin_action_links", array( $this, 'settings_plugin_link' ), 10, 2 );
+		# SETTINGS LINK
+		$action_link = is_multisite() ? 'network_admin_' : '';
+		add_filter( "{$action_link}plugin_action_links", array( $this, 'settings_plugin_link' ), 10, 2 );
+		
+		# RENAME GITHUB MASTER DIRECTORY
 		add_filter( 'upgrader_source_selection', array( $this, 'rename_github_zip' ), 1, 3);
-		add_filter('update_bulk_plugins_complete_actions', function( $actions, $info )
-		{
-			$text = __( 'View Debug Log Settings', 'sepw' );
-			$actions[] = $this->get_plugin_link( $text );
-			return $actions;
-		}, 10, 2 );
+
+		# CRON JOB, DELETE BIG LOG FILES
+		add_action( 'vdl_daily_event', array( $this, 'do_this_daily' ) );
+		
+		# CUSTOM MESSAGES AFTER PLUGIN UPDATE
+		foreach( array( 'update_plugin_complete_actions', 'update_bulk_plugins_complete_actions' ) as $msg_hook )
+			add_filter( $msg_hook, array( $this, 'bulk_update_msg' ), 10, 2 );
 
 		# PRIVATE REPO 
 		include_once 'includes/plugin-updates/plugin-update-checker.php';
@@ -73,6 +78,7 @@ class B5F_Manage_Debug_Log
 			'view-debug-log-master'
 		);
 		
+		# SETTINGS API
 		global $pagenow;
 		if( !in_array( $pagenow, array( 'tools.php', 'settings.php' ) ) )
 			return;
@@ -95,55 +101,6 @@ class B5F_Manage_Debug_Log
 		add_action( "admin_print_scripts-$page", array( $this, 'print_style' ) );
 	}
 
-
-
-	/**
-	 * Removes the prefix "-master" when updating from GitHub zip files
-	 * 
-	 * See: https://github.com/YahnisElsts/plugin-update-checker/issues/1
-	 * 
-	 * @param string $source
-	 * @param string $remote_source
-	 * @param object $thiz
-	 * @return string
-	 */
-	public function rename_github_zip( $source, $remote_source, $thiz )
-	{
-		if(  strpos( $source, 'view-debug-log') === false )
-			return $source;
-
-		$path_parts = pathinfo($source);
-		$newsource = trailingslashit($path_parts['dirname']). trailingslashit('view-debug-log');
-		rename($source, $newsource);
-		return $newsource;
-	}
-
-	
-	/**
-	 * On the scheduled action hook, run a function.
-	 */
-	function do_this_daily() 
-	{
-		$megas_10 = 10485760;
-		$megas_1_5 = 1572864;
-		if ( is_readable( $this->logpath ) ) 
-		{
-			$size = filesize( $this->logpath );
-			if( $size > ($megas_10*5) )
-				unlink( $this->logpath );
-		}
-	}
-	
-	/**
-	 * On deactivation, remove all functions from the scheduled action hook.
-	 */
-	public static function deactivation() {
-		wp_clear_scheduled_hook( 'vdl_daily_event' );
-	}
-	public static function activation() {
-		wp_schedule_event( time(), 'daily', 'vdl_daily_event');
-	}
-
 	public function render_debug()
 	{
 		# Security check and clear log
@@ -163,7 +120,7 @@ class B5F_Manage_Debug_Log
 			$content = stream_get_contents( $handle );
 			fclose( $handle );
 		}
-		$content = !empty( $content ) ? '<pre><code>'.print_r($content,true).'</code></pre>' : "<div id='no-cont'>Nothing here, captain!<br /><img src='{$this->no_log_img}' style='margin-top:15px' /></div>";
+		$content = !empty( $content ) ? '<pre><code>'.print_r($content,true).'</code></pre>' : "<div id='no-cont'><img src='{$this->no_log_img}' style='margin-top:15px' /></div>";
 		
 		
 		# Do it
@@ -300,18 +257,17 @@ class B5F_Manage_Debug_Log
 HTML;
 	}
 	
-	# http://stackoverflow.com/a/8348396/1287812
-	private function format_size($size) {
-		$units = explode(' ', 'B KB MB GB TB PB');
-		$mod = 1024;
-		for ($i = 0; $size > $mod; $i++) {
-			$size /= $mod;
-		}
-		$endIndex = strpos($size, ".")+3;
-		return substr( $size, 0, $endIndex).' '.$units[$i];
+	public function bulk_update_msg( $actions, $info )
+	{
+		$text = __( 'View Debug Log Settings', 'sepw' );
+		$link = is_multisite() 
+			? network_admin_url( 'settings.php?page=debug-log' )
+			: admin_url( 'tools.php?page=debug-log' );
+		$actions['debug_log'] = "<a href='$link' target='_parent'>$text</a>";
+		return $actions;
 	}
 
-		/**
+	/**
 	 * Add link to settings in Plugins list page
 	 * 
 	 * @return Plugin link
@@ -328,6 +284,54 @@ HTML;
 		return $links;
 	}
 
+	/**
+	 * On the scheduled action hook, run a function.
+	 */
+	function do_this_daily() 
+	{
+		$megas_10 = 10485760;
+		$megas_1_5 = 1572864;
+		if ( is_readable( $this->logpath ) ) 
+		{
+			$size = filesize( $this->logpath );
+			if( $size > ($megas_10*5) )
+				unlink( $this->logpath );
+		}
+	}
+	
+	/**
+	 * Removes the prefix "-master" when updating from GitHub zip files
+	 * 
+	 * See: https://github.com/YahnisElsts/plugin-update-checker/issues/1
+	 * 
+	 * @param string $source
+	 * @param string $remote_source
+	 * @param object $thiz
+	 * @return string
+	 */
+	public function rename_github_zip( $source, $remote_source, $thiz )
+	{
+		if(  strpos( $source, 'view-debug-log') === false )
+			return $source;
+
+		$path_parts = pathinfo($source);
+		$newsource = trailingslashit($path_parts['dirname']). trailingslashit('view-debug-log');
+		rename($source, $newsource);
+		return $newsource;
+	}
+
+	
+	# http://stackoverflow.com/a/8348396/1287812
+	private function format_size($size) {
+		$units = explode(' ', 'B KB MB GB TB PB');
+		$mod = 1024;
+		for ($i = 0; $size > $mod; $i++) {
+			$size /= $mod;
+		}
+		$endIndex = strpos($size, ".")+3;
+		return substr( $size, 0, $endIndex).' '.$units[$i];
+	}
+
 	private function get_plugin_link( $text )
 	{
 		return sprintf(
@@ -338,4 +342,15 @@ HTML;
 				$text
 		);
 	}
+	
+	/**
+	 * On deactivation, remove all functions from the scheduled action hook.
+	 */
+	public static function deactivation() {
+		wp_clear_scheduled_hook( 'vdl_daily_event' );
+	}
+	public static function activation() {
+		wp_schedule_event( time(), 'daily', 'vdl_daily_event');
+	}
+
 }
