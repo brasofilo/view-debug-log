@@ -138,7 +138,7 @@ class B5F_Manage_Debug_Log
 	echo "<hr />$content";
 	?>
 	</form>
-	<footer>&hearts; <a href="http://brasofilo.com">Rodolfo Buaiz</a> &middot; <a href="https://github.com/brasofilo">Github</a></footer>
+	<footer>&hearts; <a href="http://brasofilo.com">Rodolfo Buaiz</a> &middot; <a href="https://github.com/brasofilo/view-debug-log">Github</a></footer>
 	</div>
 </div>	
 	<?php
