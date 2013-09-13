@@ -4,7 +4,7 @@
  * Plugin Name: View Debug Log
  * Plugin URI: http://brasofilo.com/manage-debug-log
  * Description: Adds a settings page to view and clear the Debug Log (/wp-content/debug.log)
- * Version: 2013.09.13.2
+ * Version: 2013.09.13.3
  * Author: Rodolfo Buaiz
  * Network: true
  * Author URI: http://wordpress.stackexchange.com/users/12615/brasofilo
@@ -141,8 +141,10 @@ class B5F_Manage_Debug_Log
 	public function render_debug()
 	{
 		# Security check and clear log
+		# the Settings API sanitize is not being called :/
 		if ( 
-			isset( $_POST['b5f_debug_log'] ) 
+			isset( $_POST[self::$option_name] ) 
+			&& isset( $_POST[self::$option_name]['reset'] ) 
 			&& wp_verify_nonce( $_POST['b5f_debug_log'], plugin_basename( __FILE__ ) ) 
 		)
 		{
@@ -166,9 +168,10 @@ class B5F_Manage_Debug_Log
 	<div id="poststuff">
 	<form action="" method="post" id="notes_form">
 	<?php
-	settings_fields( 'b5f_vdl_group' );   
+	wp_nonce_field( plugin_basename( __FILE__ ), 'b5f_debug_log' );
+	settings_fields( self::$option_name );   
 	do_settings_sections( 'b5f-vdl-admin' );
-	submit_button(); 
+	submit_button();
 	echo "<hr />$content";
 	?>
 	</form>
@@ -184,9 +187,9 @@ class B5F_Manage_Debug_Log
     public function page_init()
     {        
         register_setting(
-            'b5f_vdl_group', // Option group
+            self::$option_name, // Option group
             self::$option_name, // Option name
-            array( $this, 'sanitize' ) // Sanitize
+            null //array( $this, 'sanitize_debug_log' ) // Sanitize
         );
         add_settings_section(
             'setting_section_id', // ID
@@ -224,7 +227,7 @@ class B5F_Manage_Debug_Log
     {
 		printf(
 			'<label><input type="text" name="%s" value="%s" /> %s</label>',
-			'vdl_option[max_size]',
+			self::$option_name.'[max_size]',
 			esc_attr( $this->options['max_size'] ),
 			''
 		);
@@ -237,7 +240,7 @@ class B5F_Manage_Debug_Log
     {
 		printf(
 			'<label><input type="checkbox" name="%s" id="vdl_option_reset" /> %s</label>',
-			'vdl_option[reset]',
+			self::$option_name."[reset]",
 			''
 		);
     }
@@ -270,7 +273,7 @@ class B5F_Manage_Debug_Log
      *
      * @param array $input Contains all settings fields as array keys
      */
-    public function sanitize( $input )
+    public function sanitize_debug_log( $input )
     {
 		if( !empty( $input['reset'] ) ) 
 			unlink( $this->logpath );
