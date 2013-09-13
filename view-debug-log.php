@@ -4,7 +4,7 @@
  * Plugin Name: View Debug Log
  * Plugin URI: http://brasofilo.com/manage-debug-log
  * Description: Adds a settings page to view and clear the Debug Log (/wp-content/debug.log)
- * Version: 2013.09.13.4
+ * Version: 2013.09.13.5
  * Author: Rodolfo Buaiz
  * Network: true
  * Author URI: http://wordpress.stackexchange.com/users/12615/brasofilo
@@ -60,7 +60,8 @@ class B5F_Manage_Debug_Log
 		add_filter( 'upgrader_source_selection', array( $this, 'rename_github_zip' ), 1, 3);
 		add_filter('update_bulk_plugins_complete_actions', function( $actions, $info )
 		{
-			$actions[] = 'actions';
+			$text = __( 'View Debug Log Settings', 'sepw' );
+			$actions[] = $this->get_plugin_link( $text );
 			return $actions;
 		}, 10, 2 );
 
@@ -320,15 +321,19 @@ HTML;
 		$base = plugin_basename( __FILE__ );
 		if( $file == $base )
 		{
-			$in = sprintf(
-					'<a href="%s">%s</a>',
-					admin_url( 'tools.php?page=debug-log' ),
-					__( 'Settings', 'sepw' )
-			);
+			$text = __( 'Settings', 'sepw' );
+			$in = $this->get_plugin_link( $text );
 			array_unshift( $links, $in );
 		}
 		return $links;
 	}
 
-
+	private function get_plugin_link( $text )
+	{
+		return sprintf(
+				'<a href="%s">%s</a>',
+				admin_url( 'tools.php?page=debug-log' ),
+				$text
+		);
+	}
 }
