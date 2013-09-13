@@ -4,7 +4,7 @@
  * Plugin Name: View Debug Log
  * Plugin URI: http://brasofilo.com/manage-debug-log
  * Description: Adds a settings page to view and clear the Debug Log (/wp-content/debug.log)
- * Version: 2013.09.13
+ * Version: 2013.09.13.2
  * Author: Rodolfo Buaiz
  * Network: true
  * Author URI: http://wordpress.stackexchange.com/users/12615/brasofilo
@@ -50,7 +50,6 @@ class B5F_Manage_Debug_Log
 		if( !$options )
 			$options = array( 'max_size' => '10' );
 		$this->options = $options;
-		loga($options);
 		
 		$hook = is_multisite() ? 'network_' : '';
 		
@@ -58,9 +57,7 @@ class B5F_Manage_Debug_Log
 		
 		add_action( 'vdl_daily_event', array( $this, 'do_this_daily' ) );
 		add_filter( 'plugin_action_links', array( $this, 'settings_plugin_link' ), 10, 2 );
-		add_action( 'admin_init', array( $this, 'page_init' ) );
 		add_filter( 'upgrader_source_selection', array( $this, 'rename_github_zip' ), 1, 3);
-
 		
 		# PRIVATE REPO 
 		include_once 'includes/plugin-updates/plugin-update-checker.php';
@@ -70,10 +67,16 @@ class B5F_Manage_Debug_Log
 			'view-debug-log-master'
 		);
 		
+		global $pagenow;
+		if( !in_array( $pagenow, array( 'tools.php', 'settings.php' ) ) )
+			return;
+		if( !isset( $_GET['page'] ) || 'debug-log' != $_GET['page'] )
+			return;
+		add_action( 'admin_init', array( $this, 'page_init' ) );
 	}
 
 	public function make_menu()
-	{
+	{ 
 		$hook = is_multisite() ? 'settings.php' : 'tools.php';
 		$page = add_submenu_page(
 			$hook,
@@ -161,7 +164,7 @@ class B5F_Manage_Debug_Log
 	<div id="icon-tools" class="icon32"></div> 
 	<h2>Debug Log</h2>
 	<div id="poststuff">
-	<form action="options.php" method="post" id="notes_form">
+	<form action="" method="post" id="notes_form">
 	<?php
 	settings_fields( 'b5f_vdl_group' );   
 	do_settings_sections( 'b5f-vdl-admin' );
