@@ -4,7 +4,7 @@
  * Plugin Name: View Debug Log
  * Plugin URI: http://brasofilo.com/manage-debug-log
  * Description: Adds a settings page to view and clear the Debug Log (/wp-content/debug.log)
- * Version: 2013.09.13.7
+ * Version: 2013.09.19
  * Author: Rodolfo Buaiz
  * Network: true
  * Author URI: http://wordpress.stackexchange.com/users/12615/brasofilo
@@ -22,7 +22,7 @@ register_activation_hook( __FILE__, array( 'B5F_Manage_Debug_Log', 'activation' 
 add_action(
 	'plugins_loaded', 
 	array( B5F_Manage_Debug_Log::get_instance(), 'plugin_setup' )
-);
+); 
 
 
 class B5F_Manage_Debug_Log
