@@ -268,7 +268,9 @@ HTML;
             $link = is_multisite() 
                 ? network_admin_url( 'settings.php?page=debug-log' )
                 : admin_url( 'tools.php?page=debug-log' );
-            $actions['debug_log'] = "<a href='$link' target='_parent'>$text</a>";
+//            $actions['debug_log'] = "<a href='$link' target='_parent' style='font-weight:bold'>$text</a>";
+            $in = "<a href='$link' target='_parent' style='font-weight:bold'>$text</a>";
+            array_unshift( $actions, $in );
         }
         
 		return $actions;
