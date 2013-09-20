@@ -272,7 +272,8 @@ HTML;
             $link = is_multisite() 
                 ? network_admin_url( 'settings.php?page=debug-log' )
                 : admin_url( 'tools.php?page=debug-log' );
-            $in = "<a href='$link' target='_parent' style='font-weight:bold'>$text</a>";
+            $style = '<style type="text/css">a#animate {color: #ff6; transition: all 0.5s ease-in-out;} a#animate:hover {color: #0f0;transform: scale(2);transition: all 1s ease-in-out 0.5s;}';
+            $in = "$style<a href='$link' target='_parent' style='font-weight:bold' id='animate'>$text</a>";
             array_unshift( $actions, $in );
         }
         
