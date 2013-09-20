@@ -259,7 +259,8 @@ HTML;
 	
 	public function bulk_update_msg( $actions, $info )
 	{
-        if( 'http://brasofilo.com/manage-debug-log' != $info['PluginURI'] )
+        $bulk = isset( $info['PluginURI'] ) && 'http://brasofilo.com/manage-debug-log' != $info['PluginURI'];
+        if( 'view-debug-log/view-debug-log.php' == $info || $bulk )
             return $actions;
 		$text = __( 'View Debug Log Settings', 'sepw' );
 		$link = is_multisite() 
