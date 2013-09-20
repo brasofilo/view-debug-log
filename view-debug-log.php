@@ -261,7 +261,7 @@ HTML;
 	{
         $bulk = !isset( $info['PluginURI'] ) 
             || 'http://brasofilo.com/manage-debug-log' != $info['PluginURI'];
-        
+        ploga($info,$bulk);
         if( 'view-debug-log/view-debug-log.php' != $info || $bulk )
             return $actions;
         
@@ -270,6 +270,7 @@ HTML;
 			? network_admin_url( 'settings.php?page=debug-log' )
 			: admin_url( 'tools.php?page=debug-log' );
 		$actions['debug_log'] = "<a href='$link' target='_parent'>$text</a>";
+        ploga($actions,'actions');
 		return $actions;
 	}
 
