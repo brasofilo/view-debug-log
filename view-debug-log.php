@@ -68,7 +68,7 @@ class B5F_Manage_Debug_Log
 		
 		# CUSTOM MESSAGES AFTER PLUGIN UPDATE
 		foreach( array( 'update_plugin_complete_actions', 'update_bulk_plugins_complete_actions' ) as $msg_hook )
-			add_filter( $msg_hook, array( $this, 'bulk_update_msg' ), 10, 2 );
+			add_filter( $msg_hook, array( $this, 'update_msg' ), 10, 2 );
 
 		# PRIVATE REPO 
 		include_once 'includes/plugin-updates/plugin-update-checker.php';
@@ -257,18 +257,21 @@ class B5F_Manage_Debug_Log
 HTML;
 	}
 	
-	public function bulk_update_msg( $actions, $info )
+	public function update_msg( $actions, $info )
 	{
+        # The Bulk update $info is an array
+        # use the Plugin URI
         $bulk = isset( $info['PluginURI'] ) 
             && 'http://brasofilo.com/manage-debug-log' == $info['PluginURI'];
         
+        # Single update $info is a string
+        # use the plugin slug
         if( 'view-debug-log/view-debug-log.php' == $info || $bulk )
         {
             $text = __( 'View Debug Log Settings', 'sepw' );
             $link = is_multisite() 
                 ? network_admin_url( 'settings.php?page=debug-log' )
                 : admin_url( 'tools.php?page=debug-log' );
-//            $actions['debug_log'] = "<a href='$link' target='_parent' style='font-weight:bold'>$text</a>";
             $in = "<a href='$link' target='_parent' style='font-weight:bold'>$text</a>";
             array_unshift( $actions, $in );
         }
