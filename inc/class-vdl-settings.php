@@ -32,7 +32,7 @@ class B5F_VDL_Settings
             'setting_section_id',
             '',
             null,
-            'b5f-vdl-admin' // Page
+            'b5f-vdl-admin'
         );  
         add_settings_field(
             'reset', 
@@ -41,16 +41,7 @@ class B5F_VDL_Settings
             'b5f-vdl-admin', 
             'setting_section_id',
             'reset'
-        );      
-        if( defined('WP_DEBUG') && WP_DEBUG ) 
-        add_settings_field(
-            'ignore', 
-            '<label for="vdl_option_ignore">'.__( 'Ignore WP_DEBUG setting.', 'sepw' ).'</label>', 
-            array( $this, 'settings_callback' ), 
-            'b5f-vdl-admin', 
-            'setting_section_id',
-            'ignore'
-        );      
+        ); 
         add_settings_field(
             'size', 
             __( 'File size', 'sepw' ), 
@@ -59,10 +50,20 @@ class B5F_VDL_Settings
             'setting_section_id',
             'size'
         );      
+        $def_debug = defined('WP_DEBUG') && WP_DEBUG;
+        $def_log = defined('WP_DEBUG_LOG') && !WP_DEBUG_LOG;
+        if( !$def_debug || $def_log) 
+            add_settings_field(
+                'ignore', 
+                '<label for="vdl_option_ignore">'.__( 'Ignore WP_DEBUG setting.', 'sepw' ).'</label>', 
+                array( $this, 'settings_callback' ), 
+                'b5f-vdl-admin', 
+                'setting_section_id',
+                'ignore'
+            );      
         register_setting(
-            B5F_View_Debug_Log::$option_name, // Option group
-            B5F_View_Debug_Log::$option_name, // Option name
-            null//array( $this, 'sanitize_debug_log' ) // Sanitize
+            'b5f_vdl_group',
+            B5F_View_Debug_Log::$option_name 
         );
     }
 
@@ -106,34 +107,8 @@ class B5F_VDL_Settings
             break;
         }
     }
-    /** 
-     * Get the settings option array and print one of its values
-     */
-    public function max_size_callback()
-    {
-		printf(
-			'<label><input type="text" name="%s" value="%s" /> %s</label>',
-			B5F_View_Debug_Log::$option_name.'[max_size]',
-			esc_attr( B5F_View_Debug_Log::get_instance()->options['max_size'] ),
-			''
-		);
-   }
-
+    
 	
-	
-    /**
-     * Sanitize each setting field as needed
-	 * Empty cache, delete transient
-     *
-     * @param array $input Contains all settings fields as array keys
-     */
-    public function sanitize_debug_log( $input )
-    {
-//		if( !empty( $input['reset'] ) ) 
-//			unlink( $this->logpath );
-        $new_input['ignore'] = isset( $input['ignore'] ) ? esc_sql( $input['ignore'] ) : false;
-        return $new_input;
-    }
 	
 	
 	# http://stackoverflow.com/a/8348396/1287812

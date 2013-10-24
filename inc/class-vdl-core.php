@@ -18,6 +18,7 @@ class B5F_View_Debug_Log
 	protected static $instance = NULL;
 	public static $option_name = 'vdl_option';
 	private $options;
+    private $reset = false;
 	private $no_log_img;
 	private $logfile = 'debug.log';
 	public $logpath;
@@ -37,7 +38,7 @@ class B5F_View_Debug_Log
 		$this->logpath = WP_CONTENT_DIR . '/' . $this->logfile;
 		$options = get_option( self::$option_name );
 		if( !$options )
-			$options = array( 'max_size' => '10' );
+			$options = false;
 		$this->options = $options;
         
 		# MENU
@@ -55,22 +56,13 @@ class B5F_View_Debug_Log
             10, 2 
         );
 		
-		# CUSTOM MESSAGES AFTER PLUGIN UPDATE
-        $hooks = array( 
-            'update_plugin_complete_actions', 
-            'update_bulk_plugins_complete_actions' 
-        );
-		foreach( $hooks as $h )
-			add_filter( $h, array( $this, 'update_msg' ), 10, 2 );
-
-        
 		# PRIVATE REPO 
         include_once __DIR__ . '/plugin-update-dispatch.php';
         $icon = '&hearts;';
         new B5F_General_Updater_and_Plugin_Love(array( 
             'repo' => 'view-debug-log', 
             'user' => 'brasofilo',
-            'plugin_file' => B5F_FPS_FILE,
+            'plugin_file' => B5F_VDL_FILE, 
             'donate_text' => 'Buy me a beer',
             'donate_icon' => "<span  class='fps-icon'>$icon </span>",
             'donate_link' => 'https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=JNJXKWBYM9JP6&lc=US&item_name=Rodolfo%20Buaiz&item_number=Plugin%20donation&currency_code=EUR&bn=PP%2dDonationsBF%3abtn_donate_LG%2egif%3aNonHosted'
@@ -100,62 +92,44 @@ class B5F_View_Debug_Log
 		add_action( "admin_print_scripts-$page", array( $this, 'print_style' ) );
 	}
 
-	public function render_debug()
-	{
+    private function check_posted_data()
+    {
 		# Security check and clear log
 		# the Settings API sanitize is not being called :/
 		if ( 
-			isset( $_POST[self::$option_name] ) 
-			&& wp_verify_nonce( $_POST['b5f_debug_log'], plugin_basename( __FILE__ ) ) 
+			!empty( $_POST ) 
+			&& check_admin_referer( plugin_basename( __FILE__ ) ) 
 		)
-		{
+		{ 
             if( isset( $_POST[self::$option_name]['ignore'] ) )
+            {
                 update_option( self::$option_name, 'on' );
+                $this->options = 'on';
+            }
             else
+            {
                 delete_option( self::$option_name );
+                $this->options = null;
+            }
             
             if( isset( $_POST[self::$option_name]['reset'] ) )
-    			unlink( $this->logpath );
+            {
+                $this->reset = false;
+                if( file_exists( $this->logpath ) ) 
+                {
+                    $this->reset = true;
+        			unlink( $this->logpath );
+                }
+            }
 		}
-		
-		# Prepare content
-		if ( is_readable( $this->logpath ) ) {
-			$handle  = fopen ( $this->logpath, 'r' );
-			$content = stream_get_contents( $handle );
-			fclose( $handle );
-		}
-		$content = !empty( $content ) 
-            ? '<pre><code>'.print_r($content,true).'</code></pre>' 
-            : "<div id='no-cont'><img src='{$this->no_log_img}' style='margin-top:15px' /></div>";
-		
-		
-		# Do it
-		?>
-<div class="wrap">
-	<div id="icon-tools" class="icon32"></div> 
-	<h2>Debug Log</h2>
-	<div id="poststuff">
-	<form action="" method="post" id="notes_form">
-	<?php
-	wp_nonce_field( plugin_basename( __FILE__ ), 'b5f_debug_log' );
-	settings_fields( self::$option_name );   
-	do_settings_sections( 'b5f-vdl-admin' );
-	submit_button();
-	echo "<hr />$content";
-	?>
-	</form>
-	<footer>&hearts; <a href="http://brasofilo.com">Rodolfo Buaiz</a> &middot; <a href="https://github.com/brasofilo/view-debug-log">Github</a></footer>
-	</div>
-</div>	
-	<?php
-        if( !defined('WP_DEBUG') || !WP_DEBUG )
-            echo "
-<div class='error'>Please, use the following in your wp-config.php file:<br />
-<pre><code>define('WP_DEBUG', true);
-define('WP_DEBUG_LOG', true);
-define('WP_DEBUG_DISPLAY', false);
-@ini_set('display_errors',0);
-</code></pre></div>";
+        
+    }
+    
+	public function render_debug()
+	{
+		$this->check_posted_data();
+        $basename = plugin_basename( __FILE__ ); // used in check_posted_data()
+        require_once __DIR__ . '/html-vdl-settings.php';
 	}
 
 	
@@ -172,27 +146,6 @@ define('WP_DEBUG_DISPLAY', false);
 HTML;
 	}
 	
-	public function update_msg( $actions, $info )
-	{
-        # The Bulk update $info is an array
-        # use the Plugin URI
-        $bulk = isset( $info['PluginURI'] ) 
-            && 'http://brasofilo.com/manage-debug-log' == $info['PluginURI'];
-        
-        # Single update $info is a string
-        # use the plugin slug
-        if( 'view-debug-log/view-debug-log.php' == $info || $bulk )
-        {
-            $text = __( 'View Debug Log Settings', 'sepw' );
-            $link = is_multisite() 
-                ? network_admin_url( 'settings.php?page=debug-log' )
-                : admin_url( 'tools.php?page=debug-log' );
-            $in = "<a href='$link' target='_parent' style='font-weight:bold'>$text</a>";
-            array_unshift( $actions, $in );
-        }
-        
-		return $actions;
-	}
 
 	/**
 	 * Add link to settings in Plugins list page
