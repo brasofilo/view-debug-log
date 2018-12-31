@@ -4,7 +4,7 @@
  * Plugin Name: View Debug Log
  * Plugin URI: http://brasofilo.com/manage-debug-log
  * Description: Adds a settings page to view and clear the Debug Log (/wp-content/debug.log)
- * Version: 2013.10.24
+ * Version: 2018.12.30
  * Author: Rodolfo Buaiz
  * Network: true
  * Author URI:  http://wordpress.stackexchange.com/users/12615/brasofilo
@@ -15,7 +15,7 @@
  *  License:
  *  ==============================================================================
  *  Copyright Rodolfo Buaiz  License:  (email : rodolfo@rodbuaiz.com)
- *  
+ *
  *	This program is free software; you can redistribute it and/or
  *	modify it under the terms of the GNU General Public License
  *	as published by the Free Software Foundation; either version 2
@@ -32,10 +32,10 @@
  */
 # Busted!
 !defined( 'ABSPATH' ) AND exit(
-        "<pre>Hi there! I'm just part of a plugin, 
+        "<pre>Hi there! I'm just part of a plugin,
             <h1>&iquest;what exactly are you looking for?" );
 
- 
+
 # Main class
 require_once __DIR__ . '/inc/class-vdl-core.php';
 
