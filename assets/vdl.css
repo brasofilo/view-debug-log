@@ -1,0 +1,139 @@
+.wrap {
+    margin-left: .5em;
+    width: 98%;
+}
+
+#no-cont {
+    margin: 1em 0;
+    font-size: 2em;
+    font-weight: bold;
+    color: #009
+}
+
+#no-cont img {
+    max-width: 330px;
+}
+
+code {
+    line-height: 2em;
+    background: #f0f0f1 !important;
+}
+
+footer {
+    margin-top: 2em;
+    opacity: .5
+}
+
+.vdl-help-tab-content {
+    padding: 10px;
+    max-width: 800px;
+}
+
+.vdl-setting-option {
+    margin: 15px 0;
+}
+
+.notice {
+    padding: 10px;
+    margin: 5px 0;
+}
+
+.notice-success {
+    background-color: #f0fff0;
+    border-left: 4px solid #46b450;
+}
+
+.notice-error {
+    background-color: #ffebee;
+    border-left: 4px solid #dc3232;
+}
+
+.vdl-loading {
+    color: #2271b1;
+    font-style: italic;
+}
+
+.icon-help {
+    max-width: -webkit-fill-available;
+    max-width: -moz-available;
+}
+
+#ttab-link-vdl_help_tab a {
+    font-weight: 800;
+    font-size: 18px;
+}
+
+li[id*='tab-link-'] a {
+    font-weight: 800;
+    font-size: 18px;
+}
+
+.log-container {
+    width: 100%;
+    /* Constrained by parent width */
+    max-width: 100%;
+    /* Ensure it doesn't overflow parent */
+    /*overflow: hidden;  Hide horizontal overflow */
+    border: 1px solid #ddd;
+    /* Optional border */
+}
+
+.log-content {
+    /*height: 300px;  Fixed height or use max-height */
+    overflow-y: auto;
+    /* Vertical scrollbar when needed */
+    /*overflow-x: hidden;  Prevent horizontal scroll */
+    background: #f5f5f5;
+    /* Light background for logs */
+    padding: 10px;
+}
+
+.log-content pre {
+    margin: 0;
+    /* Remove default margins */
+    /*white-space: pre-wrap;  Preserve formatting but wrap lines */
+    word-wrap: break-word;
+    /* Break long lines */
+    font-family: monospace;
+    /* Monospace font for logs */
+}
+
+.log-content code {
+    display: block;
+    color: #333;
+    /* Text color */
+}
+
+
+/* Horizontal scrollbar specific styles */
+.log-content::-webkit-scrollbar:horizontal {
+    height: 14px;
+}
+
+.log-content::-webkit-scrollbar-thumb:horizontal {
+    background: #a0a0a0;
+    min-width: 100px;
+    /* Minimum thumb width */
+}
+
+/* Vertical scrollbar remains styled too */
+.log-content::-webkit-scrollbar {
+    width: 14px;
+}
+
+.log-content::-webkit-scrollbar-track {
+    background: #f1f1f1;
+}
+
+.log-content::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 8px;
+    border: 3px solid #f1f1f1;
+}
+
+/* Firefox fallback */
+.log-content {
+    scrollbar-width: auto;
+    scrollbar-color: #888 #f1f1f1;
+}
+
